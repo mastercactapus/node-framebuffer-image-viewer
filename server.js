@@ -98,7 +98,7 @@ function setActive(id) {
 		activeImage = img;
 		img.active = true;
 		pubsub.publish("/images", img);
-		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", img.download], {stdio: "ignore"});
+		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", "-e", img.download], {stdio: "ignore"});
 	});
 }
 
