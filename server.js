@@ -111,7 +111,7 @@ function setActive(id) {
 		img.active = true;
 		pubsub.publish("/images", img);
 
-		return paintPicture();
+		return paintPicture(img.download);
 	});
 }
 
