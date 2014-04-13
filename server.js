@@ -129,16 +129,18 @@ function addImage(filename) {
 
 	return fs.mkdirAsync("images/" + id)
 	.then(function(){
-		var download = new Promise(function(resolve,reject){
+		return new Promise(function(resolve, reject){
+			var child = cp.spawn("convert", ["-define", "registry:temporary-path=images/tmp", "-limit","memory","8mb","-limit","map","8mb", filename, "-thumbnail", "128x128", img.thumbnail], {stdio: "ignore"});
+			child.on("close", resolve);
+		});
+	})
+	.then(function(){
+		return new Promise(function(resolve,reject){
 			var stream = fs.createReadStream(filename).pipe(fs.createWriteStream(img.download));
 
 			stream.on("error", reject);
 			stream.on("close", resolve);
 		});
-
-		var thumbnail = cp.execFileAsync("convert", [filename, "-limit","memory","8mb","-limit","map","8mb", "-thumbnail", "128x128", img.thumbnail]);
-
-		return Promise.join(download, thumbnail);
 	})
 	.then(function(){
 		pubsub.publish("/images", img);
