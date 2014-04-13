@@ -82,6 +82,20 @@ app.put("/images/:id", function(req,res){
 		res.send(400, "Unsupported operation");
 	}
 });
+function clearTTY(){
+	return new Promise(function(resolve, reject){
+		var child = cp.spawn("clear", {stdio:"inherit"});
+
+		child.on("exit", resolve);
+	});
+}
+function paintPicture(filename) {
+	if (activeProcess) activeProcess.kill();
+	return clearTTY()
+	.then(function(){
+		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", "-e", filename], {stdio: "ignore"});
+	});
+}
 function setActive(id) {
 	if (activeImage && activeImage.id === id) return Promise.resolve();
 
@@ -89,16 +103,15 @@ function setActive(id) {
 	return img.then(function(img){
 
 		if (activeImage) {
-			if (activeProcess) activeProcess.kill();
 			activeImage.active = false;
 			pubsub.publish("/images", activeImage);
-
 		}
 
 		activeImage = img;
 		img.active = true;
 		pubsub.publish("/images", img);
-		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", "-e", img.download], {stdio: "ignore"});
+
+		return paintPicture();
 	});
 }
 
