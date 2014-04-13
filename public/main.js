@@ -11,6 +11,7 @@
 		},
 		initialize: function() {
 			this.listenTo(this.model, "change:active", this.updateActive);
+			this.listenTo(this.model, "change:thumbnail", this.render);
 			this.render();
 		},
 		makeIcon: function(type) {
@@ -48,10 +49,16 @@
 				this.$el.removeClass("active");
 			}
 		},
+
 		render: function(){
 			this.$el.empty();
-
-			this.$el.css("background-image", "url('" + this.model.get("thumbnail") + "')");
+			var url = this.model.get("thumbnail");
+			if (url) {
+				this.$el.css("background-image", "url('" + this.model.get("thumbnail") + "')");
+			} else {
+				this.$el.html("<span>Generating thumbnail...</span>");
+			}
+			
 			var links = $("<div>");
 			links.addClass("links");
 			//clear everything

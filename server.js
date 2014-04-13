@@ -9,6 +9,7 @@ var multer = require("multer");
 var cp = require("child_process");
 var path = require("path");
 var bodyParser = require("body-parser");
+var _ = require("lodash");
 
 Promise.promisifyAll(fs);
 Promise.promisifyAll(cp);
@@ -129,17 +130,17 @@ function addImage(filename) {
 
 	return fs.mkdirAsync("images/" + id)
 	.then(function(){
-		return new Promise(function(resolve, reject){
-			var child = cp.spawn("convert", ["-define", "registry:temporary-path=images/tmp", "-limit","memory","8mb","-limit","map","8mb", filename, "-thumbnail", "128x128", img.thumbnail], {stdio: "ignore"});
-			child.on("close", resolve);
-		});
+		return fs.renameAsync(filename, img.download);
 	})
 	.then(function(){
-		return new Promise(function(resolve,reject){
-			var stream = fs.createReadStream(filename).pipe(fs.createWriteStream(img.download));
-
-			stream.on("error", reject);
-			stream.on("close", resolve);
+		var noThumb = _.clone(img);
+		delete noThumb.thumbnail;
+		pubsub.publish("/images", noThumb);
+	})
+	.then(function(){
+		return new Promise(function(resolve, reject){
+			var child = cp.spawn("convert", ["-define", "registry:temporary-path=images/tmp", "-limit","memory","8mb","-limit","map","8mb", img.download, "-thumbnail", "128x128", img.thumbnail], {stdio: "ignore"});
+			child.on("close", resolve);
 		});
 	})
 	.then(function(){
