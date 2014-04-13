@@ -2,13 +2,17 @@
 <html>
 <head>
 	<title>FrameBuffer Image Viewer</title>
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<script src="vendor/faye.js"></script>
+	<script src="vendor/jquery.js"></script>
+	<script src="vendor/lodash.js"></script>
+	<script src="vendor/backbone.js"></script>
 </head>
 <body>
 <p>Drag an image here or use the upload form below</p>
 <div id="images"></div>
 <div id="upload"><form action="/upload">
 	<input type="file">
-	<button type="submit">Upload</button>
 </form></div>
 </body>
 </html>

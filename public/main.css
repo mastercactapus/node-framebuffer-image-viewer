@@ -1,0 +1,18 @@
+#images {
+	border: 1px black solid;
+	width: 100%;
+	min-height: 256px;
+	max-height: 1024px;
+	box-sizing: border-box;
+}
+
+#images .box {
+	padding: 4px;
+	width: 128px;
+	height:128px;
+}
+
+#images .box:hover {
+	background: #ccc;
+	cursor: hand;
+}
