@@ -99,7 +99,7 @@ function setActive(id) {
 
 		activeImage = img;
 		pubsub.publish("/images", img);
-		activeProcess = cp.spawn("fbv", ["-e", "-a", img.download]);
+		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", img.download]);
 	});
 }
 
