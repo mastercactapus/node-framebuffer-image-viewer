@@ -3,16 +3,23 @@
 <head>
 	<title>FrameBuffer Image Viewer</title>
 	<link rel="stylesheet" type="text/css" href="main.css">
+	<link rel="stylesheet" type="text/css" href="vendor/dropzone/css/dropzone.css">
 	<script src="vendor/faye.js"></script>
 	<script src="vendor/jquery.js"></script>
 	<script src="vendor/lodash.js"></script>
 	<script src="vendor/backbone.js"></script>
+	<script src="vendor/dropzone/dropzone.js"></script>
 </head>
 <body>
-<p>Drag an image here or use the upload form below</p>
+<p>Clicking on an image will display it on the screen</p>
+
 <div id="images"></div>
-<div id="upload"><form action="/upload">
-	<input type="file">
-</form></div>
+
+<form action="/images" class="dropzone" id="imageUpload">
+  <div class="fallback">
+    <input name="file" type="file" multiple />
+  </div>
+</form>
+<script src="main.js"></script>
 </body>
 </html>
