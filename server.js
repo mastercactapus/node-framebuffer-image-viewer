@@ -119,7 +119,7 @@ function getThumbnail(id) {
 }
 function imgById(id, _ext) {
 	var thumbnailFile = getThumbnail(id);
-	var ext = _.isString(_ext) ? Promise.cast(_ext) : imgExtById(_ext);
+	var ext = _.isString(_ext) ? Promise.cast(_ext) : imgExtById(id);
 	var thumbnail = fs.statAsync(thumbnailFile).catch(_.noop);
 
 	return Promise.join(ext, thumbnail)
