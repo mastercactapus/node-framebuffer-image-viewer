@@ -63,7 +63,7 @@ app.delete("/images/:id", function(req, res){
 });
 
 app.post("/images", function(req, res){
-	addImage(req.files.file.path);
+	addImage(req.files.file.path).done();
 	res.send(202);
 });
 
@@ -85,9 +85,8 @@ app.put("/images/:id", function(req,res){
 function setActive(id) {
 	if (activeImage && activeImage.id === id) return Promise.resolve();
 
-	var ext = imgExtById(id);
-	return ext.then(function(ext){
-		var img = imgById(id, ext);
+	var img = imgById(id);
+	return img.then(function(img){
 		img.active = true;
 
 		if (activeImage) {
@@ -115,38 +114,50 @@ function imgExtById(id) {
 function imgByPath(file) {
 	return imgById(file.split("/")[1], path.extname(file));
 }
+function getThumbnail(id) {
+	return "images/" + id + "/thumbnail.png";
+}
 function imgById(id, ext) {
-	return {
-		id: id,
-		download: "images/" + id + "/image" + ext,
-		thumbnail: "images/" + id + "/thumbnail.png",
-		active: (activeImage && activeImage.id === id)
-	};
+	var thumbnailFile = getThumbnail(id);
+	var ext = ext ? Promise.cast(ext) : imgExtById(ext);
+	var thumbnail = fs.statAsync(thumbnailFile).catch(_.noop);
+
+	return Promise.join(ext, thumbnail)
+	.spread(function(ext, thumbnail){
+		return {
+			id: id,
+			download: "images/" + id + "/image" + ext,
+			thumbnail: thumbnail ? thumbnailFile : null,
+			active: (activeImage && activeImage.id === id)
+		};
+	});
 }
 function addImage(filename) {
 	var id = "image-" + path.basename(filename).replace(/\..+$/, "");
  
 	var img = imgById(id, path.extname(filename));
 
-	return fs.mkdirAsync("images/" + id)
-	.then(function(){
+	return Promise.join(img,fs.mkdirAsync("images/" + id))
+	.spread(function(img){
+		return img;
+	})
+	.tap(function(img){
 		return fs.renameAsync(filename, img.download);
 	})
-	.then(function(){
-		var noThumb = _.clone(img);
-		delete noThumb.thumbnail;
-		pubsub.publish("/images", noThumb);
+	.tap(function(img){
+		pubsub.publish("/images", img);
 	})
-	.then(function(){
+	.tap(function(img){
 		return new Promise(function(resolve, reject){
-			var child = cp.spawn("convert", ["-define", "registry:temporary-path=images/tmp", "-limit","memory","8mb","-limit","map","8mb", img.download, "-thumbnail", "128x128", img.thumbnail], {stdio: "ignore"});
+			var child = cp.spawn("convert", ["-define", "registry:temporary-path=images/tmp", "-limit","memory","8mb","-limit","map","8mb", img.download, "-thumbnail", "128x128", getThumbnail(img.id)], {stdio: "ignore"});
 			child.on("close", resolve);
 		});
 	})
-	.then(function(){
+	.tap(function(img){
+		img.thumbnail = getThumbnail(img.id);
 		pubsub.publish("/images", img);
-	})
-	.return(img);
+
+	});
 }
 
 server.listen(8000);
