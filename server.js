@@ -136,7 +136,7 @@ function addImage(filename) {
 			stream.on("close", resolve);
 		});
 
-		var thumbnail = cp.execFileAsync("convert", [filename, "-thumbnail", "128x128", img.thumbnail]);
+		var thumbnail = cp.execFileAsync("convert", [filename, "-limit","memory","8mb","-limit","map","8mb", "-thumbnail", "128x128", img.thumbnail]);
 
 		return Promise.join(download, thumbnail);
 	})
