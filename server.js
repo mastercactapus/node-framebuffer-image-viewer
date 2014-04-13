@@ -87,7 +87,6 @@ function setActive(id) {
 
 	var img = imgById(id);
 	return img.then(function(img){
-		img.active = true;
 
 		if (activeImage) {
 			if (activeProcess) activeProcess.kill();
@@ -97,8 +96,9 @@ function setActive(id) {
 		}
 
 		activeImage = img;
+		img.active = true;
 		pubsub.publish("/images", img);
-		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", img.download]);
+		activeProcess = cp.spawn("fbv", ["-k", "-a", "-i", img.download], {stdio: "ignore"});
 	});
 }
 
@@ -117,9 +117,9 @@ function imgByPath(file) {
 function getThumbnail(id) {
 	return "images/" + id + "/thumbnail.png";
 }
-function imgById(id, ext) {
+function imgById(id, _ext) {
 	var thumbnailFile = getThumbnail(id);
-	var ext = ext ? Promise.cast(ext) : imgExtById(ext);
+	var ext = _.isString(_ext) ? Promise.cast(_ext) : imgExtById(_ext);
 	var thumbnail = fs.statAsync(thumbnailFile).catch(_.noop);
 
 	return Promise.join(ext, thumbnail)
